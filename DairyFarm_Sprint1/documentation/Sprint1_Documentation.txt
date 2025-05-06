@@ -1,0 +1,29 @@
+# Dairy Farm Management System - Sprint 1 Documentation
+
+## Features Implemented
+- User Registration and Login using JWT
+- Animal Listing Page (Read-only)
+- MongoDB as Database
+- Basic integration of frontend with backend
+
+## Frontend (React)
+- `App.js`: Routes for login, register, and animal list
+- `Login.js`, `Register.js`: Forms with axios calls to backend
+- `AnimalList.js`: Displays list of animals
+
+## Backend (Node.js + Express)
+- `/api/register`: Create a new user (with bcrypt hashing)
+- `/api/login`: Authenticate user and return JWT token
+- `/api/animals`: Returns static list of animals
+
+## Database (MongoDB)
+- `User` model for authentication
+- `Animal` model for animal data
+
+## Setup Instructions
+1. Run `npm install` in both frontend and backend directories
+2. Start MongoDB locally
+3. Start backend: `node index.js`
+4. Start frontend: `npm start` (after setting up create-react-app)
+
+---
