@@ -1,0 +1,52 @@
+name: CI/CD with Asana Integration
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, closed]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install dependencies and start app
+      run: |
+        cd dairy-farm-app
+        npm install
+        npm run start
+
+    - name: Update Asana task on PR open/close
+      if: github.event_name == 'pull_request'
+      env:
+        ASANA_TOKEN: ${{ secrets.ASANA_TOKEN }}
+      run: |
+        PR_TITLE="${{ github.event.pull_request.title }}"
+        PR_BODY="${{ github.event.pull_request.body }}"
+        PR_STATE="${{ github.event.action }}"
+        
+        # Extract Asana Task ID from PR title or body (e.g., "ASANA_TASK:1234567890")
+        ASANA_TASK_ID=$(echo "$PR_TITLE $PR_BODY" | grep -o 'ASANA_TASK:[0-9]*' | cut -d: -f2)
+
+        if [ -n "$ASANA_TASK_ID" ]; then
+          echo "Found Asana Task ID: $ASANA_TASK_ID"
+
+          if [ "$PR_STATE" = "opened" ]; then
+            curl -X POST "https://app.asana.com/api/1.0/tasks/$ASANA_TASK_ID/stories" \
+              -H "Authorization: Bearer $ASANA_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d "{\"text\": \"Pull request opened: ${{ github.event.pull_request.html_url }}\"}"
+          elif [ "$PR_STATE" = "closed" ]; then
+            curl -X POST "https://app.asana.com/api/1.0/tasks/$ASANA_TASK_ID/stories" \
+              -H "Authorization: Bearer $ASANA_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d "{\"text\": \"Pull request closed: ${{ github.event.pull_request.html_url }}\"}"
+          fi
+        else
+          echo "No Asana Task ID found in PR title or body."
+        fi
